@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Calculator',
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.grey,
+        colorSchemeSeed: Colors.blue,
       ),
       home: const CalculatorPage(),
     );

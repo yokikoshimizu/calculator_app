@@ -50,4 +50,59 @@ class Calculator {
       }
     }
   }
+
+  void _setOperator(String up) {
+    //すでに演算子と数値が圧状態でさらに演算子を押されたら一度計算
+    if (_firstOperand != null && _operator != null && _shouldReset) {
+      _calculateResult();
+    }
+    _firstOperand = _display;
+    _operator = op;
+    _shouldReset = true;
+  }
+
+  //※ここでやってることは理解できなかったので要質問
+  void _calculateResult() {
+    if(_firstOperand == null || _operator == null) return;
+
+    final a = double.tryParse(firstOperand!) ?? 0;
+    final b = double.tryParse(_display) ?? 0;
+    double result;
+
+    switch (_operator) {
+      case '+':
+        result = a + b;
+        break;
+      case '-':
+        result = a - b;
+        break;
+      case '×':
+        result = a * b;
+        break;
+      case '÷':
+        //ここのケース分けは何？
+        if (b == 0) {
+          _display  = 'Error';
+          _firstOperand = null;
+          _operator = null;
+          _shouldReset = true;
+          return;
+        }
+        result = a / b;
+        break;
+      default:
+        return;
+    }
+
+    //小数点以下が0なら整数表示にする
+    if (result % 1 == 0) {
+      _display = result.toInt().toString;
+    } else {
+      _display = result.toString();
+    }
+
+    _firstOperand = null;
+    _operator = null;
+    _shouldReset = true;
+  }
 }

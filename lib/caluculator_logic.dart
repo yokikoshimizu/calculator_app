@@ -1,108 +1,97 @@
-//電卓のロジックだけを担当するクラス（UIには依存しない）
+// 電卓の計算処理だけをまとめたクラス。
+// UI（ボタンや画面表示）と切り離すことで、コードが読みやすくなり、
+// あとでテストも書きやすくなります。
+class CalculatorLogic {
+  // 現在入力中の数字を文字列として保持します。
+  // 例：ユーザーが「1 → 2 → 3」と押したら "123" になります。
+  String _currentInput = '0';
 
-class Calculator {
-  String _display = '0';
-  String? _firstOperand;
+  // 最初の数字（例：12 + の「12」）
+  double? _firstOperand;
+
+  // 現在選択されている演算子（+ - × ÷）
   String? _operator;
-  bool _shouldReset = false;
 
-  //画面に表示する文字列（読み取り専用）←読み取り専用って…？
-  String get display => _display;
+  // 外から現在の入力値を読み取れるようにする getter。
+  // getter は「値を取り出すための特別な関数」と覚えてOK。
+  String get displayValue => _currentInput;
 
-  //ボタンが押されたときに呼び出す入り口
-  void press(String value) {
-    if (value == 'AC') {
-      _allClear();
-    } else if (_isDigit(value) || value == '.') {
-      _inputDigitOrDot(value);
-    } else if (_iaOperand(value)) {
-      _setOperator(value);
-    } else if (Value == '=') {
-      _calculateResult();
-    }
-    //なぜここはelseが無い？
-  }
 
-  bool _isDigit(String v) => '0123456789'.contains(v);
-
-  bool _Operator(String v) => ['+', '-', '×', '÷'].contains(v);
-
-  void _allClear() {
-    _display = '0';
-    _firstOperand = null;
-    _operator = null;
-    _shouldReset = false;
-  }
-
-  void _inputDigitOrDot(String v) {
-    //小数点の重複を防ぐ
-    if (v == '.' && _display.contains('.')) return;
-
-    if (_shouldReset) {
-      //演算子の後の最小の入力
-      _display = (v == '.') ? '0.' : v;
-      _shouldReset = false;
+  // 数字ボタンが押されたときの処理。
+  // 例：pressNumber("5") → 現在の入力が「5」「15」「215」…と変わる。
+  void pressNumber(String digit) {
+    // 最初が "0" の状態で数字が押されたら置き換える。
+    if (_currentInput == '0') {
+      _currentInput = digit;
     } else {
-      if (_display == '0' && v != '.') {
-        _display = v; //先頭の0を置き換える
-      } else {
-        _display += v;
-      }
+      // すでに数字があるなら後ろに追加していく（文字列として連結）。
+      _currentInput += digit;
     }
   }
 
-  void _setOperator(String up) {
-    //すでに演算子と数値が圧状態でさらに演算子を押されたら一度計算
-    if (_firstOperand != null && _operator != null && _shouldReset) {
-      _calculateResult();
-    }
-    _firstOperand = _display;
-    _operator = op;
-    _shouldReset = true;
+
+  // 演算子（+ - × ÷）が押されたときの処理。
+  void pressOperator(String operator) {
+    // 現在の入力値を double に変換して firstOperand に保存。
+    // 例：12 + のときの「12」
+    _firstOperand = double.tryParse(_currentInput);
+
+    // 押された演算子（+ - × ÷）を保存。
+    _operator = operator;
+
+    // 次の数字入力に備えて currentInput をリセット。
+    _currentInput = '0';
   }
 
-  //※ここでやってることは理解できなかったので要質問
-  void _calculateResult() {
-    if(_firstOperand == null || _operator == null) return;
 
-    final a = double.tryParse(firstOperand!) ?? 0;
-    final b = double.tryParse(_display) ?? 0;
-    double result;
+  // = が押されたときの処理。
+  String calculateResult() {
+    // 演算子がまだ押されていない場合は計算できないので、そのまま返す。
+    if (_firstOperand == null || _operator == null) {
+      return _currentInput;
+    }
 
+    // secondOperand = 新しく入力した数字（例：12 + 34 の「34」）
+    final secondOperand = double.tryParse(_currentInput);
+
+    // 計算結果を保持する変数。
+    double result = 0;
+
+    // 演算子ごとに処理を分ける。
     switch (_operator) {
       case '+':
-        result = a + b;
+        result = _firstOperand! + secondOperand!;
         break;
       case '-':
-        result = a - b;
+        result = _firstOperand! - secondOperand!;
         break;
       case '×':
-        result = a * b;
+        result = _firstOperand! * secondOperand!;
         break;
       case '÷':
-        //ここのケース分けは何？
-        if (b == 0) {
-          _display  = 'Error';
-          _firstOperand = null;
-          _operator = null;
-          _shouldReset = true;
-          return;
+      // 0 で割ろうとした場合のガード
+        if (secondOperand == 0) {
+          return 'Error';
         }
-        result = a / b;
+        result = _firstOperand! / secondOperand!;
         break;
-      default:
-        return;
     }
 
-    //小数点以下が0なら整数表示にする
-    if (result % 1 == 0) {
-      _display = result.toInt().toString;
-    } else {
-      _display = result.toString();
-    }
-
+    // 計算後、結果を currentInput にセットし、
+    // 次の計算のため firstOperand と operator をリセット。
+    _currentInput = result.toString();
     _firstOperand = null;
     _operator = null;
-    _shouldReset = true;
+
+    // 画面に表示するため、結果の文字列を返す。
+    return _currentInput;
+  }
+
+
+  // AC（リセット）が押されたときの処理。
+  void clear() {
+    _currentInput = '0';
+    _firstOperand = null;
+    _operator = null;
   }
 }

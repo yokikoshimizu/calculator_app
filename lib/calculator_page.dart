@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'calculator_button.dart';
 // さっき作った「計算だけ担当するロジック」を使うための import。
 import 'calculator_logic.dart';
-import 'caluculator_logic.dart';
+import 'calculator_logic.dart';
 
 
 // 電卓の「画面全体」を表すウィジェット。
